@@ -12,13 +12,13 @@
 const int CHANNEL = 3;
 const int WIDTH = 112;
 const int HEIGHT = 112;
+const int FEATURES_NUM = 128;
 //mean & std
 const float mean_val = 127.5f;
 const float std_val = 0.0078125f;
 using namespace caffe;
 using namespace std;
 using namespace cv;
-
 
 
 #endif //FACE_WITH_CAFFE_FACENET_H

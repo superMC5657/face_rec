@@ -24,8 +24,8 @@ public:
     void to_features(vector<Mat> &imgs, vector<float *> &features) {
         Blob<float> *input_layer = net->input_blobs()[0];
         Blob<float> *output = nullptr;
-        input_layer->Reshape(imgs.size(), 3, 112, 112);
-        int spatial_size = 112 * 112;
+        input_layer->Reshape(imgs.size(), CHANNEL, WIDTH, HEIGHT);
+        int spatial_size = WIDTH * HEIGHT;
         for (int i = 0; i < imgs.size(); i++) {
             float *input_data = input_layer->mutable_cpu_data();
             float *input_data_n = input_data + input_layer->offset(i);
@@ -41,14 +41,11 @@ public:
         output = net->blob_by_name("fc5").get();
         const float *confidence_data = output->cpu_data();
         for (int i = 0; i < imgs.size(); i++) {
-            float *feature = new float[128];
-            for (int j = 0; j < 128; j++) {
-                feature[j] = confidence_data[i * 128 + j];
+            float *feature = new float[FEATURES_NUM];
+            for (int j = 0; j < FEATURES_NUM; j++) {
+                feature[j] = confidence_data[i * FEATURES_NUM + j];
             }
             features.push_back(feature);
         }
     }
 };
-//input_data[i*12544+j] = float((roi_data[k][0] - mean_val) * std_val);
-//input_data[i* + spatial_size] = float((roi_data[k][1] - mean_val) * std_val);
-//input_data[k + 2 * spatial_size] = float((roi_data[k][2] - mean_val) * std_val);

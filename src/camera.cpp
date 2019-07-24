@@ -21,6 +21,20 @@ private:
     MTCNN mtcnn;
     vector<float *> csv_features;
 
+
+    float get_cosine(const float *new_features, const float *old_features) {
+        float new_mold = 0;
+        float old_mold = 0;
+        float innerProduct = 0;
+        for (int i = 0; i < FEATURES_NUM; i++) {
+            new_mold += new_features[i] * new_features[i];
+            old_mold += old_features[i] * old_features[i];
+            innerProduct += new_features[i] * old_features[i];
+        }
+        float cosine = 1 - innerProduct / sqrt(new_mold * old_mold);
+        return cosine;
+    }
+
     array<int, 4> add_margin(FaceBox bbox, float margin) {
         array<int, 4> a{};
         a[2] = (int) ((bbox.xmax - bbox.xmin + 1) * (1 + margin));
@@ -68,10 +82,10 @@ private:
             cv::resize(croppedImage, croppedImage, Size(112, 112));
             Mat single_gray_image;
             cv::cvtColor(croppedImage, single_gray_image, COLOR_BGR2GRAY);
-            vector<Mat> channels(3);
-            channels[0] = single_gray_image;
-            channels[1] = single_gray_image;
-            channels[2] = single_gray_image;
+            vector<Mat> channels(CHANNEL);
+            for (int i = 0; i < CHANNEL; i++) {
+                channels[i] = single_gray_image;
+            }
             merge(channels, croppedImage);
             faces.push_back(croppedImage);
         }
@@ -95,11 +109,9 @@ public:
         Mat image = imread(img_path);
         vector<float *> features;
         get_features(image, features);
-        for (float *feature : features) {
-            for (int i = 0; i < 128; i++) {
-                cout << *(feature + i);
-            }
-            cout << endl;
+        for (int i = 0; i < features.size() - 1; i++) {
+            float cosine = get_cosine(features[i], features[features.size() - 1]);
+            cout << cosine << "\t";
         }
     }
 
@@ -125,7 +137,5 @@ int main(int argc, char *argv[]) {
     FaceRec faceRec;
     faceRec.init_model(model_path);
     faceRec.face_recog_img(image_path);
-
-
     return 0;
 }
