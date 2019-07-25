@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.5)
 project(face_with_caffe)
 set(CMAKE_CXX_STANDARD 14)
 include_directories(/home/zhangyan/caffe-windows/include
