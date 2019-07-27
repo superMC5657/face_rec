@@ -7,6 +7,7 @@
 #include <format.hpp>
 #include "faceNet.cpp"
 #include "mtcnn.cpp"
+#include "tools.cpp"
 #include <glog/logging.h>
 
 
@@ -111,7 +112,8 @@ public:
         get_features(image, features);
         for (int i = 0; i < features.size() - 1; i++) {
             float cosine = get_cosine(features[i], features[features.size() - 1]);
-            cout << cosine << "\t";
+            printf("%.3lf\n", cosine);
+            //            cout << cosine << endl;
         }
     }
 

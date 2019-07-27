@@ -20,5 +20,16 @@ using namespace caffe;
 using namespace std;
 using namespace cv;
 
+class FaceNet {
+private:
+    boost::shared_ptr<Net<float>> net;
+    // 将通道放到第二维度
+
+public:
+    void init_model(const string &model_path);
+
+    void to_features(vector<Mat> &imgs, vector<float *> &features);
+
+};
 
 #endif //FACE_WITH_CAFFE_FACENET_H

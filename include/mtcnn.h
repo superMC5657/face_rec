@@ -24,7 +24,6 @@ const int pnet_max_detect_num = 5000;
 const int step_size = 128;
 
 
-
 typedef struct FaceBox {
     float xmin;
     float ymin;
@@ -43,12 +42,12 @@ class MTCNN {
 public:
     void init_model(const string &proto_model_dir);
 
-    vector<FaceInfo> Detect(const cv::Mat &img, const int min_size, const float *threshold, const float factor, const int stage);
+    vector<FaceInfo> Detect(const cv::Mat &img, int min_size, const float *threshold, float factor, int stage);
 
 protected:
     vector<FaceInfo> ProposalNet(const cv::Mat &img, int min_size, float threshold, float factor);
 
-    vector<FaceInfo> NextStage(const cv::Mat &image, vector<FaceInfo> &pre_stage_res, int input_w, int input_h, int stage_num, const float threshold);
+    vector<FaceInfo> NextStage(const cv::Mat &image, vector<FaceInfo> &pre_stage_res, int input_w, int input_h, int stage_num, float threshold);
 
     void BBoxRegression(vector<FaceInfo> &bboxes);
 
