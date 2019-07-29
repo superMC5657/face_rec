@@ -4,11 +4,7 @@
 
 #include "faceNet.h"
 
-
-
 // 将通道放到第二维度
-
-
 void FaceNet::init_model(const string &model_path) {
     string proto = "../data/deploy.prototxt";
     Caffe::set_mode(Caffe::GPU);

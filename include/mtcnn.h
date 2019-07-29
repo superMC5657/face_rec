@@ -2,16 +2,8 @@
 #define _MTCNN_H__
 
 
-#include <caffe/caffe.hpp>
-#include <fstream>
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <omp.h>
-#include <boost/shared_ptr.hpp>
+#include <envs.h>
 
-using namespace caffe;
-using namespace std;
-using namespace cv;
 
 //omp
 const int threads_num = 4;
@@ -47,7 +39,9 @@ public:
 protected:
     vector<FaceInfo> ProposalNet(const cv::Mat &img, int min_size, float threshold, float factor);
 
-    vector<FaceInfo> NextStage(const cv::Mat &image, vector<FaceInfo> &pre_stage_res, int input_w, int input_h, int stage_num, float threshold);
+    vector<FaceInfo>
+    NextStage(const cv::Mat &image, vector<FaceInfo> &pre_stage_res, int input_w, int input_h, int stage_num,
+              float threshold);
 
     void BBoxRegression(vector<FaceInfo> &bboxes);
 
@@ -59,8 +53,8 @@ protected:
 
     std::vector<FaceInfo> NMS(std::vector<FaceInfo> &bboxes, float thresh, char methodType);
 
-    float IoU(float xmin, float ymin, float xmax, float ymax, float xmin_, float ymin_, float xmax_, float ymax_, bool is_iom = false);
-
+    float IoU(float xmin, float ymin, float xmax, float ymax, float xmin_, float ymin_, float xmax_, float ymax_,
+              bool is_iom = false);
 
 private:
     boost::shared_ptr<Net<float>> PNet_;

@@ -36,3 +36,4 @@ link_libraries("/usr/local/lib/libopencv_calib3d.so"
 link_directories("/usr/local/lib")
 
 add_executable(face_with_caffe src/camera.cpp)
+add_executable(make_csv src/csv.cpp)

@@ -5,20 +5,13 @@
 #ifndef FACE_WITH_CAFFE_FACENET_H
 #define FACE_WITH_CAFFE_FACENET_H
 
-#include <caffe/caffe.hpp>
-#include <opencv2/opencv.hpp>
-#include <vector>
+
+#include <envs.h>
 
 const int CHANNEL = 3;
 const int WIDTH = 112;
 const int HEIGHT = 112;
 const int FEATURES_NUM = 128;
-//mean & std
-const float mean_val = 127.5f;
-const float std_val = 0.0078125f;
-using namespace caffe;
-using namespace std;
-using namespace cv;
 
 class FaceNet {
 private:
