@@ -50,7 +50,7 @@ Mat getwarpAffineImg(Mat &src, int le_landmark_x, int le_landmark_y, int re_land
     return rot;
 }
 
-int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces,bool make_csv, float margin ) {
+int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces, bool make_csv, float margin) {
     vector<FaceInfo> faceInfos = mtcnn.Detect(image, MINSIZE, THRESHOLD, FACTOR, 3);
     int num = faceInfos.size();
     if (num == 0) {
@@ -80,8 +80,7 @@ int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces,bool make_csv, f
                 faces.push_back(croppedImage);
             }
         }
-    }
-    else {
+    } else {
         for (FaceInfo &faceInfo : faceInfos) {
             array<int, 4> a{};
             a = add_margin(faceInfo.bbox, margin);
@@ -107,20 +106,47 @@ int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces,bool make_csv, f
     return num;
 }
 
-int get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features,bool make_csv= true, float margin = 0.2) {
+int get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, bool make_csv = true, float margin = 0.2) {
     vector<Mat> faces;
     int single = 0;
-    single = getImage(mtcnn, image, faces,make_csv, margin);
-    if (make_csv){
-        if (single==1) {
+    single = getImage(mtcnn, image, faces, make_csv, margin);
+    if (make_csv) {
+        if (single == 1) {
             faceNet.to_features(faces, features);
         }
 
-    } else{
-        if (single>0){
-            faceNet.to_features(faces,features);
+    } else {
+        if (single > 0) {
+            faceNet.to_features(faces, features);
         }
     }
     return single;
 }
 
+void to_features(const string &csv_path, vector<float *> &features, vector<string> &labels) {
+    ifstream infile(csv_path);
+    string value;
+    while (infile.good()) {
+        getline(infile, value);
+        if (value == "") {
+            return;
+        }
+        const int len = value.length();
+        char *lineCharArray = new char[len + 1];
+        strcpy(lineCharArray, value.c_str());
+
+        char *p = new char; // 分隔后的字符串
+        p = strtok(lineCharArray, ","); // ","分隔
+        labels.emplace_back(p);
+        // 将数据加入vector中
+        float *feature = new float[FEATURES_NUM]; //数组定义使用[],如果使用(),会出问题
+        int i = 0;
+        p = strtok(NULL, ",");
+        while (p) {
+            feature[i] = atof(p);
+            i++;
+            p = strtok(NULL, ",");
+        }
+        features.push_back(feature);
+    }
+}

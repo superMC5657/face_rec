@@ -1,21 +1,24 @@
+
 #include "utils.cpp"
-
-
 
 class FaceRec {
 private:
     FaceNet faceNet;
     MTCNN mtcnn;
+    vector<float *> csv_features;
+    vector<string> csv_labels;
+
 
 public:
 
     void init_model(const string &model_path) {
         faceNet.init_model(model_path);
         mtcnn.init_model("../data");
+
     }
 
     void init_face_database(const string &face_database_path) {
-
+        to_features(face_database_path, csv_features, csv_labels);
     }
 
     void face_recog_img(const string &img_path) {
