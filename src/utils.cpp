@@ -7,10 +7,6 @@
 #include "faceNet.cpp"
 
 
-float FACTOR = 0.709f;
-float THRESHOLD[3] = {0.6f, 0.6f, 0.6f};
-int MINSIZE = 40;
-
 float get_cosine(const float *new_features, const float *old_features) {
     float new_mold = 0;
     float old_mold = 0;
@@ -148,5 +144,18 @@ void to_features(const string &csv_path, vector<float *> &features, vector<strin
             p = strtok(NULL, ",");
         }
         features.push_back(feature);
+    }
+}
+
+void to_label(vector<float *> &old_features, vector<string> &labels, float *&new_feature, string &label, float threashold = rec_threshold) {
+    vector<float> consines;
+    for (float *old_feature : old_features) {
+        consines.push_back(get_cosine(new_feature, old_feature));
+    }
+    int index = distance(begin(consines), min_element(begin(consines), end(consines)));
+    if (consines[index] < rec_threshold) {
+        label = labels[index];
+    } else {
+        label = "UnKnown";
     }
 }

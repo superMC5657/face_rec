@@ -25,11 +25,14 @@ public:
         Mat image = imread(img_path);
         vector<float *> features;
         get_features(faceNet, mtcnn, image, features, false);
-        for (int i = 0; i < features.size() - 1; i++) {
-            float cosine = get_cosine(features[i], features[features.size() - 1]);
-            printf("%.3lf\n", cosine);
+        int num = features.size();
+        vector<string> labels(num);
+        for (int i = 0; i < num; i++) {
+            to_label(csv_features, csv_labels, features[i], labels[i]);
             //            cout << cosine << endl;
+            cout << labels[i] << "\t";
         }
+
     }
 
     void face_recog_video(Mat &im_in, int &face_id) {
@@ -45,13 +48,14 @@ int main(int argc, char *argv[]) {
     //close caffe's log
     GlobalInit(&argc, &argv);
     if (argc < 3) {
-        printf("input error, must have two params");
+        printf("input error, must have 3 params");
     }
     //"../data/MobileFaceNet_112x112_02_gray_500.caffemodel"
     string model_path = argv[1];
-    string image_path = argv[2];
-    //"../data/one_man_img.csv"
+    string csv_path = argv[2];
+    string image_path = argv[3];
     FaceRec faceRec;
+    faceRec.init_face_database(csv_path);
     faceRec.init_model(model_path);
     faceRec.face_recog_img(image_path);
     return 0;

@@ -15,6 +15,10 @@ const int pnet_max_detect_num = 5000;
 //minibatch size
 const int step_size = 128;
 
+float FACTOR = 0.709f;
+float THRESHOLD[3] = {0.6f, 0.6f, 0.6f};
+int MINSIZE = 40;
+
 
 typedef struct FaceBox {
     float xmin;
