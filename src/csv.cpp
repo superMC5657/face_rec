@@ -54,7 +54,8 @@ public:
         for (string file:files) {
             vector<float *> features_copy;
             Mat image = imread(imageDir_path + '/' + file);
-            int single = get_features(faceNet, mtcnn, image, features_copy);
+            vector<array<int, 4>> coordinates;
+            int single = get_features(faceNet, mtcnn, image, features_copy, coordinates);
             if (single == 1) {
                 labels.push_back(file.substr(0, file.length() - 4));
                 features.push_back(features_copy[0]);

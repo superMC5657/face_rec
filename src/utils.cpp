@@ -22,13 +22,14 @@ float get_cosine(const float *new_features, const float *old_features) {
 
 array<int, 4> add_margin(FaceBox bbox, float margin) {
     array<int, 4> a{};
-    a[2] = (int) ((bbox.xmax - bbox.xmin + 1) * (1 + margin));
-    a[3] = (int) ((bbox.ymax - bbox.ymin + 1) * (1 + margin));
-    a[0] = (int) (bbox.xmin - margin * a[2] * 0.5);
-    a[1] = (int) (bbox.ymin - margin * a[3] * 0.5);
+    a[2] = (int) ((bbox.xmax - bbox.xmin + 1) * (1 + margin)); //w
+    a[3] = (int) ((bbox.ymax - bbox.ymin + 1) * (1 + margin)); //h
+    a[0] = (int) (bbox.xmin - margin * a[2] * 0.5); //x
+    a[1] = (int) (bbox.ymin - margin * a[3] * 0.5); //y
     return a;
 }
 
+//align
 Mat getwarpAffineImg(Mat &src, int le_landmark_x, int le_landmark_y, int re_landmark_x, int re_landmark_y) {
 
     //计算两眼中心点,按照此中心点进行旋转
@@ -46,7 +47,8 @@ Mat getwarpAffineImg(Mat &src, int le_landmark_x, int le_landmark_y, int re_land
     return rot;
 }
 
-int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces, bool make_csv, float margin) {
+int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>> &coordinates, bool make_csv,
+             float margin) {
     vector<FaceInfo> faceInfos = mtcnn.Detect(image, MINSIZE, THRESHOLD, FACTOR, 3);
     int num = faceInfos.size();
     if (num == 0) {
@@ -58,7 +60,6 @@ int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces, bool make_csv, 
                 array<int, 4> a{};
                 a = add_margin(faceInfo.bbox, margin);
                 Mat croppedImage(image, Rect(a[0], a[1], a[2], a[3]));
-
                 int le_landmark_x = (int) faceInfo.landmark[0] - a[0];
                 int le_landmark_y = (int) faceInfo.landmark[1] - a[1];
                 int re_landmark_x = (int) faceInfo.landmark[2] - a[0];
@@ -74,12 +75,12 @@ int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces, bool make_csv, 
                 }
                 merge(channels, croppedImage);
                 faces.push_back(croppedImage);
+                coordinates.push_back(a);
             }
         }
     } else {
         for (FaceInfo &faceInfo : faceInfos) {
-            array<int, 4> a{};
-            a = add_margin(faceInfo.bbox, margin);
+            array<int, 4> a = add_margin(faceInfo.bbox, margin);
             Mat croppedImage(image, Rect(a[0], a[1], a[2], a[3]));
 
             int le_landmark_x = (int) faceInfo.landmark[0] - a[0];
@@ -97,15 +98,19 @@ int getImage(MTCNN &mtcnn, const Mat &image, vector<Mat> &faces, bool make_csv, 
             }
             merge(channels, croppedImage);
             faces.push_back(croppedImage);
+            coordinates.push_back(a);
         }
     }
     return num;
 }
 
-int get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, bool make_csv = true, float margin = 0.2) {
+int
+get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, vector<array<int, 4>> &coordinates,
+             bool make_csv = true,
+             float margin = 0.2) {
     vector<Mat> faces;
     int single = 0;
-    single = getImage(mtcnn, image, faces, make_csv, margin);
+    single = getImage(mtcnn, image, faces, coordinates, make_csv, margin);
     if (make_csv) {
         if (single == 1) {
             faceNet.to_features(faces, features);
@@ -147,15 +152,17 @@ void to_features(const string &csv_path, vector<float *> &features, vector<strin
     }
 }
 
-void to_label(vector<float *> &old_features, vector<string> &labels, float *&new_feature, string &label, float threashold = rec_threshold) {
+void to_label(vector<float *> &old_features, vector<string> &labels, float *&new_feature, string &label,
+              float threashold = rec_threshold) {
     vector<float> consines;
     for (float *old_feature : old_features) {
         consines.push_back(get_cosine(new_feature, old_feature));
     }
     int index = distance(begin(consines), min_element(begin(consines), end(consines)));
-    if (consines[index] < rec_threshold) {
+    if (consines[index] < threashold) {
         label = labels[index];
     } else {
         label = "UnKnown";
     }
 }
+
