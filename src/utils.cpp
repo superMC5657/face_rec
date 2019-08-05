@@ -20,13 +20,13 @@ float get_cosine(const float *new_features, const float *old_features) {
     return cosine;
 }
 
-array<int, 4> add_margin(FaceBox bbox, float margin) {
-    array<int, 4> a{};
-    a[2] = (int) ((bbox.xmax - bbox.xmin + 1) * (1 + margin)); //w
-    a[3] = (int) ((bbox.ymax - bbox.ymin + 1) * (1 + margin)); //h
-    a[0] = (int) (bbox.xmin - margin * a[2] * 0.5); //x
-    a[1] = (int) (bbox.ymin - margin * a[3] * 0.5); //y
-    return a;
+void add_margin(FaceBox bbox, array<int, 4> &a, float margin, Mat &image) {
+    int width = (int) ((bbox.xmax - bbox.xmin + 1));
+    int height = (int) ((bbox.ymax - bbox.ymin + 1));
+    a[0] = MAX((int) (bbox.xmin - margin * width * 0.5), 0);//x
+    a[1] = MAX((int) (bbox.ymin - margin * height * 0.5), 0);//y
+    a[2] = MIN((int) (width * (1 + margin)), image.cols - a[0]);//w
+    a[3] = MIN((int) (height * (1 + margin)), image.rows - a[1]);//h
 }
 
 //align
@@ -47,7 +47,7 @@ Mat getwarpAffineImg(Mat &src, int le_landmark_x, int le_landmark_y, int re_land
     return rot;
 }
 
-int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>> &coordinates, bool make_csv,
+int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>> &coordinate, bool make_csv,
              float margin) {
     vector<FaceInfo> faceInfos = mtcnn.Detect(image, MINSIZE, THRESHOLD, FACTOR, 3);
     int num = faceInfos.size();
@@ -58,7 +58,7 @@ int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>>
         if (num == 1) {
             for (FaceInfo &faceInfo : faceInfos) {
                 array<int, 4> a{};
-                a = add_margin(faceInfo.bbox, margin);
+                add_margin(faceInfo.bbox, a, margin, image);
                 Mat croppedImage(image, Rect(a[0], a[1], a[2], a[3]));
                 int le_landmark_x = (int) faceInfo.landmark[0] - a[0];
                 int le_landmark_y = (int) faceInfo.landmark[1] - a[1];
@@ -75,12 +75,13 @@ int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>>
                 }
                 merge(channels, croppedImage);
                 faces.push_back(croppedImage);
-                coordinates.push_back(a);
+                coordinate.push_back(a);
             }
         }
     } else {
         for (FaceInfo &faceInfo : faceInfos) {
-            array<int, 4> a = add_margin(faceInfo.bbox, margin);
+            array<int, 4> a{};
+            add_margin(faceInfo.bbox, a, margin, image);
             Mat croppedImage(image, Rect(a[0], a[1], a[2], a[3]));
 
             int le_landmark_x = (int) faceInfo.landmark[0] - a[0];
@@ -98,19 +99,19 @@ int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>>
             }
             merge(channels, croppedImage);
             faces.push_back(croppedImage);
-            coordinates.push_back(a);
+            coordinate.push_back(a);
         }
     }
     return num;
 }
 
 int
-get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, vector<array<int, 4>> &coordinates,
+get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, vector<array<int, 4>> &coordinate,
              bool make_csv = true,
              float margin = 0.2) {
     vector<Mat> faces;
     int single = 0;
-    single = getImage(mtcnn, image, faces, coordinates, make_csv, margin);
+    single = getImage(mtcnn, image, faces, coordinate, make_csv, margin);
     if (make_csv) {
         if (single == 1) {
             faceNet.to_features(faces, features);
@@ -166,3 +167,12 @@ void to_label(vector<float *> &old_features, vector<string> &labels, float *&new
     }
 }
 
+void draw_image(Mat &image, array<int, 4> &coordinate, string &label) {
+    rectangle(image, Rect(coordinate[0], coordinate[1], coordinate[2], coordinate[3]),
+              Scalar(255, 0, 0), 2);
+    //label
+    float scale = coordinate[2] * 0.005f;
+    putText(image, label, Point2d(coordinate[0], coordinate[1]), FONT_HERSHEY_SIMPLEX, scale,
+            Scalar(0, 255, 0), 2);
+
+}
