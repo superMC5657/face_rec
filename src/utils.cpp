@@ -47,7 +47,7 @@ Mat getwarpAffineImg(Mat &src, int le_landmark_x, int le_landmark_y, int re_land
     return rot;
 }
 
-int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>> &coordinate, bool make_csv,
+int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>> &coordinates, bool make_csv,
              float margin) {
     vector<FaceInfo> faceInfos = mtcnn.Detect(image, MINSIZE, THRESHOLD, FACTOR, 3);
     int num = faceInfos.size();
@@ -75,7 +75,7 @@ int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>>
                 }
                 merge(channels, croppedImage);
                 faces.push_back(croppedImage);
-                coordinate.push_back(a);
+                coordinates.push_back(a);
             }
         }
     } else {
@@ -99,19 +99,19 @@ int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>>
             }
             merge(channels, croppedImage);
             faces.push_back(croppedImage);
-            coordinate.push_back(a);
+            coordinates.push_back(a);
         }
     }
     return num;
 }
 
 int
-get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, vector<array<int, 4>> &coordinate,
+get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, vector<array<int, 4>> &coordinates,
              bool make_csv = true,
              float margin = 0.2) {
     vector<Mat> faces;
     int single = 0;
-    single = getImage(mtcnn, image, faces, coordinate, make_csv, margin);
+    single = getImage(mtcnn, image, faces, coordinates, make_csv, margin);
     if (make_csv) {
         if (single == 1) {
             faceNet.to_features(faces, features);
