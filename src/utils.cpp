@@ -7,7 +7,7 @@
 #include "faceNet.cpp"
 
 
-float get_cosine(const float *new_features, const float *old_features) {
+float get_cosine(vector<float> new_features, vector<float> old_features) {
     float new_mold = 0;
     float old_mold = 0;
     float innerProduct = 0;
@@ -106,7 +106,7 @@ int getImage(MTCNN &mtcnn, Mat &image, vector<Mat> &faces, vector<array<int, 4>>
 }
 
 int
-get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &features, vector<array<int, 4>> &coordinates,
+get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image,vector<vector<float>> &features, vector<array<int, 4>> &coordinates,
              bool make_csv = true,
              float margin = 0.2) {
     vector<Mat> faces;
@@ -125,12 +125,12 @@ get_features(FaceNet &faceNet, MTCNN &mtcnn, Mat &image, vector<float *> &featur
     return single;
 }
 
-void to_features(const string &csv_path, vector<float *> &features, vector<string> &labels) {
+void to_features(const string &csv_path, vector<vector<float>> &features, vector<string> &labels) {
     ifstream infile(csv_path);
     string value;
     while (infile.good()) {
         getline(infile, value);
-        if (value == "") {
+        if (value.empty()) {
             return;
         }
         const int len = value.length();
@@ -141,22 +141,23 @@ void to_features(const string &csv_path, vector<float *> &features, vector<strin
         p = strtok(lineCharArray, ","); // ","分隔
         labels.emplace_back(p);
         // 将数据加入vector中
-        float *feature = new float[FEATURES_NUM]; //数组定义使用[],如果使用(),会出问题
+        vector<float> feature(FEATURES_NUM); //数组定义使用[],如果使用(),会出问题
         int i = 0;
-        p = strtok(NULL, ",");
+        p = strtok(nullptr, ",");
         while (p) {
             feature[i] = atof(p);
             i++;
-            p = strtok(NULL, ",");
+            p = strtok(nullptr, ",");
         }
         features.push_back(feature);
     }
 }
 
-void to_label(vector<float *> &old_features, vector<string> &labels, float *&new_feature, string &label,
-              float threashold = rec_threshold) {
+void
+to_label(const vector<vector<float>> &old_features, vector<string> &labels, vector<float> &new_feature, string &label,
+         float threashold = rec_threshold) {
     vector<float> consines;
-    for (float *old_feature : old_features) {
+    for (const vector<float> &old_feature : old_features) {
         consines.push_back(get_cosine(new_feature, old_feature));
     }
     int index = distance(begin(consines), min_element(begin(consines), end(consines)));

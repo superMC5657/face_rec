@@ -21,7 +21,7 @@ private:
 public:
     void init_model(const string &model_path);
 
-    void to_features(vector<Mat> &imgs, vector<float *> &features);
+    void to_features(vector<Mat> &imgs, vector<vector<float>> &features);
 
 };
 

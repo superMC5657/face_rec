@@ -15,7 +15,7 @@ void FaceNet::init_model(const string &model_path) {
     input_layer->Reshape(0, CHANNEL, HEIGHT, WIDTH);
 }
 
-void FaceNet::to_features(vector<Mat> &imgs, vector<float *> &features) {
+void FaceNet::to_features(vector<Mat> &imgs, vector<vector<float>> &features) {
     Blob<float> *input_layer = net->input_blobs()[0];
     Blob<float> *output = nullptr;
     input_layer->Reshape(imgs.size(), CHANNEL, WIDTH, HEIGHT);
@@ -35,7 +35,7 @@ void FaceNet::to_features(vector<Mat> &imgs, vector<float *> &features) {
     output = net->blob_by_name("fc5").get();
     const float *confidence_data = output->cpu_data();
     for (int i = 0; i < imgs.size(); i++) {
-        float *feature = new float[FEATURES_NUM];
+        vector<float> feature(FEATURES_NUM);
         for (int j = 0; j < FEATURES_NUM; j++) {
             feature[j] = confidence_data[i * FEATURES_NUM + j];
         }

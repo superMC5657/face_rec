@@ -5,11 +5,11 @@ class FaceRec {
 private:
     FaceNet faceNet;
     MTCNN mtcnn;
-    vector<float *> csv_features;
+    vector<vector<float>> csv_features;
     vector<string> csv_labels;
 
     void face_recog_video(Mat &image) {
-        vector<float *> features;
+        vector<vector<float>> features;
         vector<array<int, 4>> coordinates;
         get_features(faceNet, mtcnn, image, features, coordinates, false);
         int num = features.size();
@@ -20,15 +20,7 @@ private:
             //画框
             draw_image(image, coordinates[i], labels[i]);
         }
-        for_each(features.begin(), features.end(), DeleteObject());
     }
-
-    struct DeleteObject {
-        template<typename T>
-        void operator()(const T *ptr) const {
-            delete ptr;
-        }
-    };
 
 
 public:
@@ -45,7 +37,7 @@ public:
 
     void face_recog_img(const string &img_path) {
         Mat image = imread(img_path);
-        vector<float *> features;
+        vector<vector<float>> features;
         vector<array<int, 4>> coordinates;
         get_features(faceNet, mtcnn, image, features, coordinates, false);
         int num = features.size();
@@ -94,7 +86,7 @@ int main(int argc, char *argv[]) {
     FaceRec faceRec;
     faceRec.init_face_database(csv_path);
     faceRec.init_model(model_path);
-//  faceRec.open_camera();
+//    faceRec.open_camera();
     faceRec.face_recog_img(image_path);
     return 0;
 }
