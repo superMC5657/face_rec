@@ -24,5 +24,6 @@ const float mean_val = 127.5f;
 const float std_val = 0.0078125f;
 
 const float rec_threshold = 0.700f;
+typedef boost::shared_ptr<float > float_p;
 
 #endif //FACE_WITH_CAFFE_ENVS_H

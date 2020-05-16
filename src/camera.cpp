@@ -20,7 +20,15 @@ private:
             //画框
             draw_image(image, coordinates[i], labels[i]);
         }
+        for_each(features.begin(), features.end(), DeleteObject());
     }
+
+    struct DeleteObject {
+        template<typename T>
+        void operator()(const T *ptr) const {
+            delete ptr;
+        }
+    };
 
 
 public:
@@ -52,23 +60,23 @@ public:
         imwrite("../output.png", image);
     }
 
-    int open_camera() {
+    void open_camera() {
         VideoCapture cap(0);
         if (!cap.isOpened()) {
-            return -1;
+            return;
         }
         Mat frame;
+        int kk = 0;
+        namedWindow("test", 1);
         while (true) {
-            int kk = waitKey(1);
+            kk = waitKey(1);
             cap >> frame;
             face_recog_video(frame);
             imshow("test", frame);
             if (char(kk) == 27) {//esc exit
-                break;
+                return;
             }
         }
-        cap.release();
-        return 0;
     }
 };
 
@@ -82,10 +90,11 @@ int main(int argc, char *argv[]) {
     //"../data/MobileFaceNet_112x112_02_gray_500.caffemodel"
     string model_path = argv[1];
     string csv_path = argv[2];
-    //string image_path = argv[3];
+    string image_path = argv[3];
     FaceRec faceRec;
     faceRec.init_face_database(csv_path);
     faceRec.init_model(model_path);
-    faceRec.open_camera();
+//  faceRec.open_camera();
+    faceRec.face_recog_img(image_path);
     return 0;
 }
