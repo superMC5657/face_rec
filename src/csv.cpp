@@ -50,9 +50,9 @@ public:
         vector<string> files;
         vector<string> labels;
         get_files(imageDir_path, files);
-        vector<float *> features;
-        for (string file:files) {
-            vector<float *> features_copy;
+        vector<vector<float>> features;
+        for (const string& file:files) {
+            vector<vector<float>> features_copy;
             Mat image = imread(imageDir_path + '/' + file);
             vector<array<int, 4>> coordinates;
             int single = get_features(faceNet, mtcnn, image, features_copy, coordinates);
@@ -66,7 +66,7 @@ public:
         ofstream outFile;
         outFile.open(csv_path, ios::out);
         for (int i = 0; i < features.size(); i++) {
-            float *feature = features[i];
+            vector<float> feature = features[i];
             string label = labels[i];
             outFile << label << ',';
             for (int j = 0; j < FEATURES_NUM; j++) {
@@ -77,33 +77,6 @@ public:
         outFile.close();
     }
 
-    void to_features(const string &csv_path, vector<float *> &features, vector<string> &labels) {
-        ifstream infile(csv_path);
-        string value;
-        while (infile.good()) {
-            getline(infile, value);
-            if (value == "") {
-                return;
-            }
-            const int len = value.length();
-            char *lineCharArray = new char[len + 1];
-            strcpy(lineCharArray, value.c_str());
-
-            char *p = new char; // 分隔后的字符串
-            p = strtok(lineCharArray, ","); // ","分隔
-            labels.emplace_back(p);
-            // 将数据加入vector中
-            float *feature = new float[FEATURES_NUM]; //数组定义使用[],如果使用(),会出问题
-            int i = 0;
-            p = strtok(NULL, ",");
-            while (p) {
-                feature[i] = atof(p);
-                i++;
-                p = strtok(NULL, ",");
-            }
-            features.push_back(feature);
-        }
-    }
 };
 
 
